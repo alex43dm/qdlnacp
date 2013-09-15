@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_layout_file>
+	<ActiveTarget name="Debug" />
+	<File name="src/UPnP_CP.cpp" open="1" top="0" tabpos="2" split="2" active="1" splitpos="837" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="4238" topLine="222" />
+			<Cursor2 position="1475" topLine="70" />
+		</Cursor>
+	</File>
+	<File name="src/main.cpp" open="0" top="0" tabpos="10" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="201" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="include/Thread.h" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="181" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="include/HttpClient.h" open="0" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="195" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="include/xmltools.h" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="423" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="include/Item.h" open="0" top="0" tabpos="7" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="695" topLine="6" />
+		</Cursor>
+	</File>
+	<File name="src/Config.cpp" open="0" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="6160" topLine="171" />
+		</Cursor>
+	</File>
+	<File name="include/Log.h" open="0" top="0" tabpos="10" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1195" topLine="10" />
+		</Cursor>
+	</File>
+	<File name="include/Timer.h" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="343" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="src/TcpClient.cpp" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="212" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="src/Device.cpp" open="1" top="1" tabpos="5" split="0" active="1" splitpos="837" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="2466" topLine="91" />
+		</Cursor>
+	</File>
+	<File name="resorces.qrc" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="248" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="include/UPnP_CP.h" open="1" top="0" tabpos="1" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="711" topLine="14" />
+		</Cursor>
+	</File>
+	<File name="include/Container.h" open="0" top="0" tabpos="6" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="153" topLine="6" />
+		</Cursor>
+	</File>
+	<File name="src/HttpClient.cpp" open="0" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1738" topLine="45" />
+		</Cursor>
+	</File>
+	<File name="src/UPnP_MediaRenderer.cpp" open="0" top="0" tabpos="6" split="2" active="1" splitpos="941" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="5351" topLine="185" />
+			<Cursor2 position="1471" topLine="47" />
+		</Cursor>
+	</File>
+	<File name="include/Config.h" open="0" top="0" tabpos="8" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="89" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="include/mainwindow.h" open="1" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="904" topLine="32" />
+		</Cursor>
+	</File>
+	<File name="include/Icon.h" open="0" top="0" tabpos="11" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="512" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="src/Icon.cpp" open="0" top="0" tabpos="8" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="436" topLine="6" />
+		</Cursor>
+	</File>
+	<File name="src/Timer.cpp" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="100" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="src/Thread.cpp" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="759" topLine="7" />
+		</Cursor>
+	</File>
+	<File name="src/DeviceList.cpp" open="1" top="0" tabpos="6" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1492" topLine="68" />
+		</Cursor>
+	</File>
+	<File name="include/UPnP.h" open="0" top="0" tabpos="9" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1293" topLine="15" />
+		</Cursor>
+	</File>
+	<File name="include/UPnP_MediaRenderer.h" open="0" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="303" topLine="7" />
+		</Cursor>
+	</File>
+	<File name="include/Service.h" open="0" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="821" topLine="18" />
+		</Cursor>
+	</File>
+	<File name="include/DeviceList.h" open="0" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1310" topLine="15" />
+		</Cursor>
+	</File>
+	<File name="include/Device.h" open="0" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="2985" topLine="45" />
+		</Cursor>
+	</File>
+	<File name="src/Item.cpp" open="0" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="987" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="src/xmltools.cpp" open="0" top="0" tabpos="7" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="3033" topLine="83" />
+		</Cursor>
+	</File>
+	<File name="Makefile" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1918" topLine="42" />
+		</Cursor>
+	</File>
+	<File name="src/UPnP.cpp" open="0" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1311" topLine="29" />
+		</Cursor>
+	</File>
+	<File name="src/mainwindow.cpp" open="1" top="0" tabpos="4" split="2" active="1" splitpos="808" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="8590" topLine="319" />
+			<Cursor2 position="6887" topLine="245" />
+		</Cursor>
+	</File>
+	<File name="src/Service.cpp" open="0" top="0" tabpos="8" split="0" active="1" splitpos="682" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="280" topLine="31" />
+		</Cursor>
+	</File>
+	<File name="include/UPnP_MediaServer.h" open="0" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="419" topLine="5" />
+		</Cursor>
+	</File>
+	<File name="src/Container.cpp" open="0" top="0" tabpos="7" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="793" topLine="33" />
+		</Cursor>
+	</File>
+	<File name="src/UPnP_MediaServer.cpp" open="0" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="9567" topLine="248" />
+		</Cursor>
+	</File>
+</CodeBlocks_layout_file>

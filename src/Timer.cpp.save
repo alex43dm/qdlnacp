@@ -1,0 +1,22 @@
+#include "Timer.h"
+
+Timer::Timer(int s) :
+    Thread(),
+    sec(s)
+{
+    //ctor
+}
+
+Timer::~Timer()
+{
+    //dtor
+}
+
+void threadLoop()
+{
+    int i = 0;
+    while( i < sec)
+    {
+        sleep
+    }
+}

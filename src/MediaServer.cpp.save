@@ -1,0 +1,175 @@
+#include <string.h>
+
+#include "MediaServer.h"
+#include "xmltools.h"
+
+MediaServer::MediaServer(UPnP *_upnp, std::string _id)
+{
+    upnp = _upnp;
+    id = _id;
+    id = "uuid:69294598-58cd-4167-8c35-0944227dc806";
+    //ctor
+}
+
+MediaServer::~MediaServer()
+{
+    //dtor
+}
+
+bool MediaServer::getMedia(Container* parent)
+{
+    IXML_Document * getInfo =
+        upnp->SendAction( id.c_str(),
+                   ContentDirectory, "Browse", 6, "ObjectID", parent->getObjectID(),
+                   "BrowseFlag", "BrowseDirectChildren",
+                   "Filter", "*.avi",
+                   "StartingIndex", "0",
+                   "RequestedCount", "0",
+                   "SortCriteria", "");
+
+    //std::string ii =  ixmlDocumenttoString(getInfo);
+    //std::cerr<<ii<<std::endl;
+
+    IXML_Document* result = parseBrowseResult( getInfo );
+    if (getInfo)   ixmlDocument_free(getInfo);
+
+    IXML_NodeList* containerNodeList = ixmlDocument_getElementsByTagName( result, "container" );
+    if ( containerNodeList )
+    {
+        for ( unsigned int i = 0; i < ixmlNodeList_length( containerNodeList ); i++ )
+        {
+            IXML_Element* containerElement = ( IXML_Element* )ixmlNodeList_item( containerNodeList, i );
+
+            const char* objectID = ixmlElement_getAttribute( containerElement, "id" );
+            if ( !objectID ) continue;
+
+            const char* childCountStr = ixmlElement_getAttribute( containerElement, "childCount" );
+            if ( !childCountStr ) continue;
+            int childCount = atoi( childCountStr );
+
+            const char* title = xml_getChildElementValue( containerElement, "dc:title" );
+            if ( !title ) continue;
+
+            const char* resource = xml_getChildElementValue( containerElement, "res" );
+
+            if ( resource && childCount < 1 )
+            {
+                Item* item = new Item( parent, objectID, title, resource );
+                parent->addItem( item );
+            }
+            else
+            {
+                Container* container = new Container( parent, objectID, title );
+                parent->addContainer( container );
+                //recursion
+                if ( childCount > 0 ) getMedia( container );
+            }
+        }
+        ixmlNodeList_free( containerNodeList );
+    }
+
+
+    IXML_NodeList* itemNodeList = ixmlDocument_getElementsByTagName( result, "item" );
+    if ( itemNodeList )
+    {
+        for ( unsigned int i = 0; i < ixmlNodeList_length( itemNodeList ); i++ )
+        {
+            IXML_Element* itemElement = ( IXML_Element* )ixmlNodeList_item( itemNodeList, i );
+
+            const char* objectID = ixmlElement_getAttribute( itemElement, "id" );
+            if ( !objectID ) continue;
+
+            const char* title = xml_getChildElementValue( itemElement, "dc:title" );
+            if ( !title ) continue;
+
+            const char* resource = xml_getChildElementValue( itemElement, "res" );
+            if ( !resource ) continue;
+
+            //fprintf(stderr,"objectID: %s title: %s resource: %s\n", objectID, title, resource);
+
+            Item* item = new Item( parent, objectID, title, resource );
+            item->upnpClass =Config::xmlGetChildElementValue( itemElement, "upnp:class" );
+            item->artist = Config::xmlGetChildElementValue( itemElement, "upnp:artist" );
+            item->album = Config::xmlGetChildElementValue( itemElement, "upnp:album" );
+            item->originalTrackNumber = Config::xmlGetChildElementValue( itemElement, "upnp:originalTrackNumber" );
+            item->date = Config::xmlGetChildElementValue( itemElement, "dc:date" );
+            item->description = Config::xmlGetChildElementValue( itemElement, "dc:description" );
+            item->res = Config::xmlGetChildElement( itemElement, "res" );
+
+            parent->addItem( item );
+        }
+
+        ixmlNodeList_free( itemNodeList );
+    }
+
+    ixmlDocument_free( result );
+
+    return true;
+}
+
+IXML_Document* MediaServer::parseBrowseResult( IXML_Document* doc )
+{
+    if ( !doc ) return 0;
+
+    IXML_NodeList* resultList = ixmlDocument_getElementsByTagName( doc, "Result" );
+    if ( !resultList ) return 0;
+
+    IXML_Node* resultNode = ixmlNodeList_item( resultList, 0 );
+
+    ixmlNodeList_free( resultList );
+
+    if ( !resultNode ) return 0;
+
+    IXML_Node* textNode = ixmlNode_getFirstChild( resultNode );
+    if ( !textNode ) return 0;
+
+    const char* resultString = ixmlNode_getNodeValue( textNode );
+    char* resultXML = strdup( resultString );
+
+    //resolve_xml_special_chars( resultXML );
+
+    IXML_Document* browseDoc = ixmlParseBuffer( resultXML );
+
+    free( resultXML );
+
+    return browseDoc;
+}
+
+void MediaServer::buildPlaylist( Container* parent )
+{
+    for ( unsigned int i = 0; i < parent->getNumContainers(); i++ )
+    {
+        Container* container = parent->getContainer( i );
+        //recursion
+        buildPlaylist( container );
+    }
+    /*
+        for ( unsigned int i = 0; i < parent->getNumItems(); i++ )
+        {
+            Item* item = parent->getItem( i );
+        }*/
+}
+
+bool MediaServer::getItem( Container* parent)
+{
+    for ( unsigned int i = 0; i < parent->getNumContainers(); i++ )
+    {
+        Container* container = parent->getContainer( i );
+        //recursion
+        if( getItem( container) )
+        {
+            return true;
+        }
+    }
+
+    for ( unsigned int i = 0; i < parent->getNumItems(); i++ )
+    {
+        Item* item = parent->getItem( i );
+        if( item->compareId(id))
+        {
+            found = item;
+            return true;
+        }
+    }
+    return false;
+}

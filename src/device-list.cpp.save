@@ -1,0 +1,205 @@
+/* -*- Mode: C; indent-tabs-mode: t; c-basic-offset: 4; tab-width: 4 -*- */
+/*
+ * gupnp
+ * Copyright (C) Unknown 2013 <alex@gentooS>
+	 *
+ * gupnp is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+	 *
+ * gupnp is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+#include <string.h>
+#include <algorithm>
+#include <iostream>
+
+#include "device-list.h"
+
+DeviceList::DeviceList( )
+{
+    //_list = new std::vector<Device *>();
+}
+
+DeviceList::~DeviceList()
+{
+    /*
+    for ( unsigned int i = 0; i < _list.size(); i++ )
+    {
+        delete _list[i];
+    }*/
+}
+
+
+
+bool DeviceList::addDevice( Device* s, bool scan )
+{
+
+    /*
+    if( std::find(_list.begin(), _list.end(), s) != _list.end() )
+    {
+        return false;
+    }
+    */
+    _mutex.lock();
+    std::vector<Device*>::iterator it;
+    for ( it = _list.begin(); it != _list.end(); it++ )
+    {
+        std::string str = (*it)->getId();
+        if( str == s->getId() )
+        {
+            //std::cerr<<"already added: "<<str<<std::endl;
+            _mutex.unlock();
+            return false;
+        }
+    }
+
+    if(scan)
+    {
+        std::cerr<<"start fetch: "<<s->getId()<<std::endl;
+        s->fetchInfo();
+    }
+
+    _list.push_back( s );
+    _mutex.unlock();
+    std::cerr<<"add device: "<<s->getDevInfo()<<std::endl;
+    return true;
+}
+
+Device* DeviceList::getDevice( std::string id )
+{
+    Device* result = 0;
+    for ( unsigned int i = 0; i < _list.size(); i++ )
+    {
+        if( id == _list[i]->getId() )
+        {
+            result = _list[i];
+            break;
+        }
+    }
+    return result;
+}
+
+void DeviceList::removeDevice( const char* id )
+{
+    Device* device = getDevice( id );
+    if ( !device ) return;
+
+    std::vector<Device*>::iterator it;
+    for ( it = _list.begin(); it != _list.end(); it++ )
+    {
+        if ( *it == device )
+        {
+            _list.erase( it );
+            delete device;
+            break;
+        }
+    }
+}
+
+void DeviceList::replaceDevice( Device* d )
+{
+    for ( unsigned int i = 0; i < _list.size(); i++ )
+    {
+        if( d->_DeviceId == _list[i]->_DeviceId )
+        {
+            _mutex.lock();
+            _list[i] = d;
+            _mutex.unlock();
+            break;
+        }
+    }
+}
+
+Device* DeviceList::getDeviceByID( const char* id )
+{
+    Device* device = 0;
+
+    for ( unsigned int i = 0; i < _list.size(); i++ )
+    {
+        if ( _list[i]->compareId( id ) )
+        {
+            device = _list[i];
+            break;
+        }
+    }
+
+    return device;
+}
+
+Device* DeviceList::getDeviceBySid( const char* sid )
+{
+    Device* device = 0;
+
+    for ( unsigned int i = 0; i < _list.size(); i++ )
+    {
+        if ( strcmp(_list[i]->getServicebySid( sid ) == 0)
+        {
+            device = _list[i];
+            break;
+        }
+    }
+    return device;
+}
+
+Device* DeviceList::getDeviceByfriendlyName( const char* name )
+{
+    Device* device = 0;
+    for ( unsigned int i = 0; i < _list.size(); i++ )
+    {
+        if ( _list[i]->comparefriendlyName( name) )
+        {
+            device = _list[i];
+            break;
+        }
+    }
+    return device;
+}
+
+std::vector<Device *> DeviceList::getList( void )
+{
+    return _list;
+}
+
+const char * DeviceList::serviceTypeUrn(std::string id, ServiceType st)
+{
+    Device* d = getDeviceByID(id.c_str());
+    if( d == 0 )
+    {
+        std::cerr<<"\ndevice: "<<id<<" not found\n";
+        return 0;
+    }
+
+    Service *s = d->getService(st);
+    if( s == 0 )
+    {
+        fprintf(stderr, "service: %d not found\n", st);
+        return 0;
+    }
+    return s->serviceTypeUrn.c_str();
+}
+
+const char * DeviceList::controlURL(std::string id, ServiceType st)
+{
+    Device* d = getDeviceByID(id.c_str());
+    if( d == 0 )
+    {
+        std::cerr<<"\ndevice: "<<id<<" not found\n";
+        return 0;
+    }
+
+    Service *s = d->getService(st);
+    if( s == 0 )
+    {
+        fprintf(stderr, "service: %d not found\n", st);
+        return 0;
+    }
+    return s->controlURL.c_str();
+}
+

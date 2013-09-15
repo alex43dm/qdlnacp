@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Player</class>
+ <widget class="QWidget" name="Player">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>222</width>
+    <height>31</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <widget class="QWidget" name="horizontalLayoutWidget">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>221</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <layout class="QHBoxLayout" name="horizontalLayout">
+    <item>
+     <widget class="QPushButton" name="pushButton_backward">
+      <property name="text">
+       <string/>
+      </property>
+      <property name="icon">
+       <iconset resource="../resorces.qrc">
+        <normaloff>:/root/resources/media/skip-backward.svg</normaloff>:/root/resources/media/skip-backward.svg</iconset>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QPushButton" name="pushButton_Play">
+      <property name="text">
+       <string/>
+      </property>
+      <property name="icon">
+       <iconset resource="../resorces.qrc">
+        <normaloff>:/root/resources/media/playback-start.svg</normaloff>:/root/resources/media/playback-start.svg</iconset>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QPushButton" name="pushButton_Stop">
+      <property name="text">
+       <string/>
+      </property>
+      <property name="icon">
+       <iconset resource="../resorces.qrc">
+        <normaloff>:/root/resources/media/stop.svg</normaloff>:/root/resources/media/stop.svg</iconset>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QPushButton" name="pushButton_Forward">
+      <property name="text">
+       <string/>
+      </property>
+      <property name="icon">
+       <iconset resource="../resorces.qrc">
+        <normaloff>:/root/resources/media/skip-forward.svg</normaloff>:/root/resources/media/skip-forward.svg</iconset>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <resources>
+  <include location="../resorces.qrc"/>
+ </resources>
+ <connections/>
+</ui>

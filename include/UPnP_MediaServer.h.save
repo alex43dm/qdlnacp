@@ -1,0 +1,38 @@
+#ifndef _UPnP_MediaServer_H_
+#define _UPnP_MediaServer_H_
+
+#include <fstream>
+
+#include "u-pn-p.h"
+
+class UPnP_MediaServer : public Device
+{
+public:
+    std::string *id;
+    Item* found;
+
+    UPnP_MediaServer();
+    UPnP_MediaServer(Device *d);
+    void LoadPlayList();
+    Item* FindById(std::string Id);
+    bool Search( std::string str);
+    void GetSearchCapabilities();
+    void GetSystemUpdateID();
+    void GetSortCapabilities(UPnP* upnp);
+   void upnpEventReceived( Upnp_Event* );
+    ~UPnP_MediaServer();
+protected:
+private:
+    Container* root;
+    std::ofstream *outfile;
+    const char *controlURL;
+    const char *serviceTypeUrn;
+
+    bool getItem( Container* parent);
+    void buildPlaylist( Container* parent );
+    bool getMedia(Container* parent);
+    IXML_Document* parseBrowseResult( IXML_Document* doc );
+    void getUrls();
+};
+
+#endif // _UPnP_MediaServer_H_

@@ -1,0 +1,29 @@
+#include <string.h>
+
+#include "Icon.h"
+
+Icon::Icon() :
+    data(NULL),
+    length(0)
+{
+}
+
+Icon::~Icon()
+{
+    if(data)
+        free(data);
+}
+
+int Icon::write(const char* pdata, size_t n)
+{
+    length = n;
+    data = (uint8_t *)malloc(length);
+    memcpy(data, pdata, length);
+    return n;
+}
+
+bool Icon::save(const std::string &fileName)
+{
+    int fd = open()
+    return true;
+}

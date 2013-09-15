@@ -1,0 +1,79 @@
+#include <time.h>
+#include <string.h>
+
+#include "include/Uri.h"
+#include "include/Item.h"
+
+Item::Item( Container* parent, const char* objectID, const char* title, const char* resource )
+{
+    _parent = parent;
+    _objectID = objectID;
+    _title = title;
+    _resource = resource;
+}
+
+Item::Item( const Item& i)
+{
+    upnpClass = i.upnpClass;
+    artist = i.artist;
+    album = i.album;
+    originalTrackNumber = i.originalTrackNumber;
+    date = i.date;
+    description = i.description;
+    size = i.size;
+    protocolInfo = i.protocolInfo;
+    duration = i.duration;
+    bitrate = i.bitrate;
+    sampleFrequency = i.sampleFrequency;
+    nrAudioChannels = i.nrAudioChannels;
+    res = i.res;
+    all = i.all;
+
+    _parent = i.getParent();
+    _objectID = i.getObjectID();
+    _title = i.getTitle();
+    _resource = i.getResource();
+}
+
+const char* Item::getObjectID() const
+{
+    return _objectID.c_str();
+}
+
+const char* Item::getTitle() const
+{
+    return (artist+"-"+_title).c_str();
+}
+
+const std::string Item::getStr() const
+{
+    return artist.size() ? artist + "-" + _title : _title;
+}
+
+const char* Item::getResource() const
+{
+    return _resource.c_str();
+}
+
+Container* Item::getParent() const
+{
+    if(_parent)
+    {
+        return  _parent;
+    }
+    return 0;
+}
+
+int Item::duration2sec(void)
+{
+    struct tm tm1;
+    memset(&tm1, 0, sizeof(struct tm));
+    strptime(duration.c_str(), "%H:%M:%S", &tm1);
+    return tm1.tm_sec + 60 * (tm1.tm_min + 60 * tm1.tm_hour);
+}
+
+std::string Item::playListPath(void)
+{
+    Uri u = Uri::Parse(_resource);
+    return u.Path.substr(u.Path.find_last_of("/")+1);
+}

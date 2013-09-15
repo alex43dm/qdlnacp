@@ -1,0 +1,32 @@
+#ifndef MEDIASERVER_H
+#define MEDIASERVER_H
+
+#include <string>
+
+#include <upnp/ixml.h>
+
+#include "u-pn-p.h"
+
+class MediaServer
+{
+public:
+    long id;
+    MediaServer(UPnP *upnp, std::string id);
+    void LoadPlayList(void);
+    virtual ~MediaServer();
+
+
+protected:
+private:
+    UPnP *upnp;
+    Container* root;
+    std::string serverId;
+    Item* found;
+
+    bool getItem( Container* parent);
+    void buildPlaylist( Container* parent );
+    bool getMedia(Container* parent);
+    IXML_Document* parseBrowseResult( IXML_Document* doc );
+};
+
+#endif // MEDIASERVER_H

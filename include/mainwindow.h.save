@@ -1,0 +1,44 @@
+#ifndef MAINWINDOW_H
+#define MAINWINDOW_H
+
+#include <QMainWindow>
+#include <QTreeWidgetItem>
+
+#include "UPnP_CP.h"
+
+namespace Ui {
+class MainWindow;
+}
+
+class MainWindow : public QMainWindow, public UPnP_CP
+{
+    Q_OBJECT
+
+public:
+    explicit MainWindow(QWidget *parent = 0);
+    ~MainWindow();
+
+public slots:
+    void exit();
+    void onMediaServersPic(QTreeWidgetItem * item, int column);
+    void onMediaRendererPic(QTreeWidgetItem * item, int column);
+    void onLibraryPic(QTreeWidgetItem * item, int column);
+    void onPlayList(QTreeWidgetItem * item, int column);
+
+    void setText(QString i);
+    void clearText();
+    void threadError(QString err);
+    void onPlay();
+    void onPause();
+    void onStop();
+    void onNext();
+    void onPrev();
+private:
+    Ui::MainWindow *ui;
+    virtual bool onDeviceAdd();
+    virtual onScanStop
+private slots:
+    void scanDone();
+};
+
+#endif // MAINWINDOW_H

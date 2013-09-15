@@ -1,0 +1,425 @@
+#include <iostream>
+#include <sstream>
+#include <fstream>
+
+#include <string.h>
+
+#include "UPnP_MediaRenderer.h"
+#include "xmltools.h"
+#include "Log.h"
+
+UPnP_MediaRenderer::UPnP_MediaRenderer() :
+    Device(),
+    isSet(false),
+    Volume(0),
+    Position(0)
+{
+}
+
+UPnP_MediaRenderer::UPnP_MediaRenderer(Device *d) :
+    Device(d),
+    isSet(false),
+    Volume(0),
+    Position(0)
+{
+}
+
+bool UPnP_MediaRenderer::subscribe()
+{
+    bool ret;
+
+    ret = Subscribe(AVTransport, 20);
+    if( !ret ) return ret;
+
+    return Subscribe(RenderingControl, 20);
+}
+
+bool UPnP_MediaRenderer::unSubscribe()
+{
+    bool ret;
+    ret = UnSubscribe(AVTransport);
+
+    if( !ret ) return ret;
+
+    return UnSubscribe(RenderingControl);
+}
+
+void UPnP_MediaRenderer::upnpEventReceived( Upnp_Event* e)
+{
+    std::string tmp;
+    Log::debug("UPnP_MediaRenderer::upnpEventReceived get event");
+
+    printf("%s\n",ixmlDocumenttoString(clearXmlDoc(e->ChangedVariables)));
+
+    IXML_NodeList* nList = ixmlDocument_getElementsByTagName( clearXmlDoc(e->ChangedVariables), "Event" );
+    if( ixmlNodeList_length( nList ) > 0 )
+    {
+        IXML_Element* InstanceID_el = ( IXML_Element* )ixmlNodeList_item( nList, 0);
+
+        InstanceID = ixmlElement_getAttribute(InstanceID_el, "val");
+        tmp = xmlGetChildElementAttrValue(InstanceID_el,"TransportState","val");
+        if(tmp.size()) TransportState = tmp;
+        NumberOfTracks = xmlGetChildElementAttrValue(InstanceID_el,"NumberOfTracks","val");
+        tmp = xmlGetChildElementAttrValue(InstanceID_el,"CurrentTrackDuration","val");
+        if(tmp.size())
+        {
+            CurrentTrackDuration = tmp;
+            TrackLengthSec = timeToSeconds(CurrentTrackDuration);
+        }
+
+        tmp = xmlGetChildElementAttrValue(InstanceID_el,"CurrentTrackMetaData","val");
+        if(tmp.size())
+        {
+            clearXmlString(tmp);
+            IXML_Document *meta = ixmlParseBuffer(tmp.c_str());
+            IXML_NodeList* itemList = ixmlDocument_getElementsByTagName(meta, "item");
+
+            IXML_Element* itemElement = (IXML_Element*)ixmlNodeList_item(itemList, 0);
+            ixmlNodeList_free( itemList );
+
+            //urrentTrack = xml_getChildElementValue(itemElement, "dc:title");
+            ixmlNodeList_free( (IXML_NodeList*)itemElement );
+        }
+    }
+    Log::debug("state %s curTrack: %s len: %s %d",
+               TransportState.c_str(), CurrentTrack.c_str(), CurrentTrackDuration.c_str(), TrackLengthSec);
+}
+
+std::string UPnP_MediaRenderer::xmlGetChildElementAttrValue( IXML_Element* parent,  const std::string tagName, const std::string attrName )
+{
+    if ( !parent ) return "";
+    if ( tagName.empty() ) return "";
+    if ( attrName.empty() ) return "";
+
+
+    IXML_NodeList* nodeList = ixmlElement_getElementsByTagName( parent, tagName.c_str());
+    if ( !nodeList ) return "";
+
+    IXML_Element* element = ( IXML_Element* )ixmlNodeList_item( nodeList, 0 );
+    ixmlNodeList_free( nodeList );
+    if ( !element ) return "";
+
+    return ixmlElement_getAttribute(element, attrName.c_str());
+}
+
+UPnP_MediaRenderer::~UPnP_MediaRenderer()
+{
+    unSubscribe();
+}
+
+bool UPnP_MediaRenderer::Next()
+{
+    if( currentPlay != playlist.size() )
+    {
+        currentPlay++;
+        SetUrl();
+        return true;
+    }
+    return false;
+}
+
+bool UPnP_MediaRenderer::Prev()
+{
+    if( currentPlay  > 0)
+    {
+        currentPlay--;
+        SetUrl();
+        return true;
+    }
+    return false;
+}
+
+bool UPnP_MediaRenderer::Play()
+{
+    if(!isSet)
+    {
+        if( currentPlay < playlist.size() )
+        {
+            SetUrl();
+        }
+    }
+
+    if(TransportState != "PLAYING")
+    {
+        SendAction(AVTransport, "Play",  2, "InstanceID", "0", "Speed", "1");
+        return true;
+    }
+    else
+    {
+        SendAction(AVTransport, "Pause",  1, "InstanceID", "0");
+        return false;
+    }
+}
+
+bool UPnP_MediaRenderer::SetTrack(const std::string &id)
+{
+    for ( unsigned int i = 0; i < playlist.size(); i++ )
+    {
+        if(playlist[i]->getObjectID() == id)
+        {
+            currentPlay = i;
+            SetUrl();
+            return true;
+        }
+    }
+    return false;
+}
+
+bool UPnP_MediaRenderer::Play(const std::string &id)
+{
+    for ( unsigned int i = 0; i < playlist.size(); i++ )
+    {
+        if(playlist[i]->getObjectID() == id)
+        {
+            currentPlay = i;
+            SetUrl();
+            return Play();
+        }
+    }
+    return false;
+}
+
+bool UPnP_MediaRenderer::Pause()
+{
+    IXML_Document * getInfo;
+    getInfo = SendAction(AVTransport, "Pause",  1, "InstanceID", "0");
+    return getInfo == NULL;
+}
+
+bool UPnP_MediaRenderer::Stop()
+{
+    IXML_Document * getInfo;
+    getInfo = SendAction(AVTransport, "Stop",  1, "InstanceID", "0");
+    if( getInfo == NULL)
+    {
+        return false;
+    }
+    else
+    {
+        return true;
+    }
+}
+
+unsigned int UPnP_MediaRenderer::getPositionInfo()
+{
+    IXML_Document * getInfo;
+    getInfo = SendAction(AVTransport, "GetPositionInfo",  1, "InstanceID", "0");
+
+    if( getInfo == NULL)
+    {
+        return 0;
+    }
+    else
+    {
+        IXML_NodeList* resultList = ixmlDocument_getElementsByTagName( getInfo, "RelTime" );
+        if ( !resultList ) return 0;
+
+
+        IXML_Node* resultNode = ixmlNodeList_item( resultList, 0 );
+        ixmlNodeList_free( resultList );
+
+        if ( !resultNode ) return 0;
+
+        IXML_Node* textNode = ixmlNode_getFirstChild( resultNode );
+        if ( !textNode ) return 0;
+
+        Position = timeToSeconds(ixmlNode_getNodeValue(textNode));
+    }
+
+    Log::debug("position: %d",Position);
+    return Position;
+}
+
+unsigned int UPnP_MediaRenderer::timeToSeconds(const std::string &str)
+{
+    unsigned int sec = 0;
+    std::size_t p1, p2, sz;
+
+    sz = str.size();
+
+    p1 = str.find(":");
+    if(p1 != std::string::npos)
+    {
+        //hours
+        sec += 3600 * atoi(str.substr(0,p1).c_str());
+        //min
+        if(p1+3 <= sz)
+            sec += 60 * atoi(str.substr(p1+1,2).c_str());
+        p2 = str.find(":", p1+1);
+        if(p2 != std::string::npos)
+        {
+            //sec
+            if(p2+3 <= sz)
+                sec += atoi(str.substr(p2+1,2).c_str());
+        }
+    }
+    //Log::debug("timeToSeconds: in: %s out: %d",str.c_str(), sec);
+    return sec;
+}
+
+void UPnP_MediaRenderer::SetUrl()
+{
+    IXML_Document * getInfo;
+
+    if( currentPlay >= playlist.size() )
+    {
+        return;
+    }
+
+    Item* _found = playlist[currentPlay];
+
+    Position = 0;
+    TrackLengthSec = timeToSeconds(_found->duration);
+
+    Container* p = _found->getParent();
+
+    std::ostringstream meta;
+    meta <<"<DIDL-Lite xmlns=\"urn:schemas-upnp-org:metadata-1-0/DIDL-Lite\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:upnp=\"urn:schemas-upnp-org:metadata-1-0/upnp/\">\
+<item id=\""<<_found->getResource()<<"\" \
+parentID=\""<<p->getObjectID()<<"\" \
+restricted=\"0\">\
+<dc:title>"<<_found->getTitle()<<"</dc:title>\
+<dc:date>"<< _found->date<<"</dc:date>\
+<upnp:class>"<< _found->upnpClass<<"</upnp:class>\
+<dc:creator></dc:creator>\
+<upnp:genre></upnp:genre>\
+<upnp:artist>"<<_found->artist<<"</upnp:artist>\
+<upnp:album>"<< _found->album<<"</upnp:album>"<<_found->res<<"</item></DIDL-Lite>";
+
+    Log::debug("send SetAVTransportURI: %s", _found->getResource());
+    getInfo = SendAction(AVTransport,"SetAVTransportURI", 3,"InstanceID", "0",
+                         "CurrentURI", (const char *)_found->getResource(),
+                         "CurrentURIMetaData", meta.str().c_str());
+
+    if( getInfo == NULL)
+    {
+        Log::err("error SetAVTransportURI: %s", _found->getResource());
+    }
+
+    /*
+        getInfo = SendAction(xbmcId.c_str(), AVTransport, "SetPlayMode",  2, "InstanceID", "0", "NewPlayMode", "NORMAL");
+
+                       if( getInfo == NULL)
+                       {
+                           std::cerr<<"error";
+                       }
+                       else
+                       {
+                           std::cerr << "ok";
+                       }
+    */
+    isSet = true;
+}
+
+void UPnP_MediaRenderer::PlayListAdd(Item* i)
+{
+    if(i==0) return;
+
+    Item *itm = new Item(*i);
+    playlist.push_back( itm );
+
+    //set first item
+    if( playlist.size() == 1 )
+    {
+        currentPlay = 0;
+    }
+}
+
+void UPnP_MediaRenderer::PlayListClear()
+{
+    playlist.erase (playlist.begin(),playlist.end());
+}
+
+void UPnP_MediaRenderer::PlayList2M3U(std::string fName)
+{
+    std::ofstream pl (fName);
+    pl << "#EXTM3U" << std::endl;
+
+    for ( unsigned int i = 0; i < playlist.size(); i++ )
+    {
+        pl << "#EXTINF:"<<playlist[i]->duration2sec()<<","<<playlist[i]->artist<<" - "<<playlist[i]->getTitle()<<std::endl;
+        pl << playlist[i]->playListPath()<<std::endl;
+    }
+    pl.close();
+}
+
+bool UPnP_MediaRenderer::Mute()
+{
+    IXML_Document * getInfo;
+    getInfo = SendAction(RenderingControl, "SetMute",  2, "InstanceID", "0", "DesiredMute", "1");
+    if( getInfo == NULL)
+    {
+        return false;
+    }
+    else
+    {
+        return true;
+    }
+}
+
+unsigned int UPnP_MediaRenderer::getVol()
+{
+	IXML_Document * getInfo;
+
+	getInfo = SendAction(RenderingControl,"GetVolume",  2, "InstanceID", "0", "Channel", "Master");
+	printf("vol: %s\n",ixmlDocumenttoString(clearXmlDoc(getInfo)));
+
+	if(getInfo == NULL)
+	{
+		return 0;
+	}
+
+	IXML_NodeList *nlist = ixmlDocument_getElementsByTagName(getInfo, "CurrentVolume");
+	IXML_Element* el = (IXML_Element*)ixmlNodeList_item(nlist, 0);
+
+	const char *svol = xml_getChildElementValue(el, "CurrentVolume");
+	if(svol)
+	{
+	    Volume = atoi(svol);
+	    free((void*)svol);
+	}
+
+	ixmlNodeList_free((IXML_NodeList*)el);
+	ixmlNodeList_free(nlist);
+
+	return Volume;
+}
+
+bool UPnP_MediaRenderer::setVol(const std::string &vol)
+{
+    IXML_Document * getInfo;
+    getInfo = SendAction(RenderingControl,"SetVolume",  3, "InstanceID", "0", "Channel", "Master", "DesiredVolume", vol.c_str());
+    if( getInfo == NULL)
+    {
+        return false;
+    }
+    else
+    {
+        return true;
+    }
+}
+
+bool UPnP_MediaRenderer::InitInfo()
+{
+    getVol();
+    getPositionInfo();
+    return true;
+}
+
+bool UPnP_MediaRenderer::Seek(int posTo)
+{
+    if( TransportState != "PLAYING" )
+        return false;
+
+    char seekPos[9];
+    memset(seekPos, 0, sizeof(seekPos));
+    snprintf(seekPos,sizeof(seekPos),"%02d:%02d:%02d",
+             posTo/3600, (posTo - posTo/3600)/60, posTo - (posTo - posTo/3600)/60);
+
+    //Log::debug("seek to: %s",seekPos);
+
+    IXML_Document * getInfo;
+    getInfo = SendAction(AVTransport,"Seek",  3, "InstanceID", "0", "Unit", "REL_TIME", "Target", seekPos);
+
+    return getInfo == NULL;
+}

@@ -1,0 +1,39 @@
+#ifndef CONTAINER_H
+#define CONTAINER_H
+
+#include <string>
+#include <vector>
+
+#include "include/Item.h"
+
+class Container
+{
+public:
+
+    Container( Container* parent, const char* objectID, const char* title );
+    ~Container();
+
+    void addItem( Item* item );
+    void addContainer( Container* container );
+
+    const char* getObjectID() const;
+    const char* getTitle() const;
+    Container *getParent() _parent;
+
+    unsigned int getNumItems() const;
+    unsigned int getNumContainers() const;
+
+    Item* getItem( unsigned int i ) const;
+    Container* getContainer( unsigned int i ) const;
+
+
+private:
+    Container* _parent;
+
+    std::string _objectID;
+    std::string _title;
+    std::vector<Item*> _items;
+    std::vector<Container*> _containers;
+};
+
+#endif // CONTAINER_H

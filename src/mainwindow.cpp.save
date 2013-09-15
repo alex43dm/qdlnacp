@@ -1,0 +1,394 @@
+#include <QThread>
+#include <QMessageBox>
+#include <QToolButton>
+
+#include "mainwindow.h"
+#include "ui_mainwindow.h"
+#include "forms/player.h"
+
+#include "Log.h"
+
+#ifdef DEBUG
+#include <QDebug>
+#endif
+
+MainWindow::MainWindow(QWidget *parent) :
+	QMainWindow(parent),
+	UPnP_CP(),
+	ui(new Ui::MainWindow)
+{
+    ui->setupUi(this);
+
+    actVolSlider = new QWidgetAction(this);
+    volSlider = new QSpinBox();
+    volSlider->setMaximum(100);
+    volSlider->setMinimum(0);
+    actVolSlider->setDefaultWidget(volSlider);
+    ui->mainToolBar->addAction(actVolSlider);
+
+/*
+    actVolSlider = new QWidgetAction(this);
+    userInputButton = new QToolButton(ui->mainToolBar);
+    ui->mainToolBar->addAction(actVolSlider);
+*/
+    actPlayerLabel = new QWidgetAction(this);
+    playerTime = new QLabel();
+    playerTime->setText("00:00:00");
+    actPlayerLabel->setDefaultWidget(playerTime);
+    ui->mainToolBar->addAction(actPlayerLabel);
+    ui->mainToolBar->insertSeparator(actPlayerLabel);
+
+    actPlayerSlider = new QWidgetAction(this);
+    playerSlider = new QSlider(Qt::Horizontal,this);
+    playerSlider->setRange(0, 100);
+    playerSlider->minimumSize();
+    actPlayerSlider->setDefaultWidget(playerSlider);
+    ui->mainToolBar->addAction(actPlayerSlider);
+
+    actSongName  = new QWidgetAction(this);
+    songName = new QLabel();
+    songName->setText("No selected");
+    actSongName->setDefaultWidget(songName);
+    ui->toolBar_song->addAction(actSongName);
+
+	connect(ui->actionExit, SIGNAL(triggered()), this, SLOT(exit()));
+	connect(ui->actionPLay, SIGNAL(triggered()), this, SLOT(onPlay()));
+	connect(ui->actionPause, SIGNAL(triggered()), this, SLOT(onPause()));
+	connect(ui->actionNext, SIGNAL(triggered()), this, SLOT(onNext()));
+	connect(ui->actionPrev, SIGNAL(triggered()), this, SLOT(onPrev()));
+	connect(ui->actionVolumeDropDown, SIGNAL(triggered()), this, SLOT(onVolShow()));
+	connect(ui->actionStop, SIGNAL(triggered()), this, SLOT(onStop()));
+    connect(volSlider,SIGNAL(valueChanged(int)),this,SLOT(onVolChange(int)));
+    connect(playerSlider,SIGNAL(sliderMoved(int)),this,SLOT(onPlayerSliderChange(int)));
+
+	connect(ui->treeWidget_MediaServers, SIGNAL(itemClicked(QTreeWidgetItem*, int)), this, SLOT(onMediaServersPic(QTreeWidgetItem*, int)));
+	connect(ui->treeWidget_MediaRenderer, SIGNAL(itemClicked(QTreeWidgetItem*, int)), this, SLOT(onMediaRendererPic(QTreeWidgetItem*, int)));
+	connect(ui->treeWidget_library, SIGNAL(itemClicked(QTreeWidgetItem*, int)), this, SLOT(onLibraryPic(QTreeWidgetItem*, int)));
+	connect(ui->treeWidget_PlayList, SIGNAL(itemClicked(QTreeWidgetItem*, int)), this, SLOT(onPlayList(QTreeWidgetItem*, int)));
+
+
+
+    //init UPnP
+	UPnP_CP::init();
+	//start UPnP
+	UPnP_CP::start();
+
+    statusBar()->showMessage(tr("program started"));
+}
+
+MainWindow::~MainWindow()
+{
+    delete volSlider;
+    delete actVolSlider;
+    delete playerSlider;
+    delete actPlayerSlider;
+
+    delete ui;
+}
+
+
+bool MainWindow::onScanStop()
+{
+    statusBar()->showMessage(tr("scan done"));
+    return true;
+}
+
+bool MainWindow::onScanStart()
+{
+    statusBar()->showMessage(tr("scan start"));
+    return true;
+}
+
+void MainWindow::onPlay()
+{
+    if(Play())
+    {
+        ui->actionPLay->setIcon(QIcon(":/root/resources/media/playback-pause.svg"));
+
+        playerSlider->setRange(TracPosition(),TrackDuration());
+        playerSlider->setValue(0);
+        if(curItem)
+        {
+            songName->setText(curItem->text(0));
+        }
+
+    }
+    else
+    {
+        ui->actionPLay->setIcon(QIcon(":/root/resources/media/playback-start.svg"));
+    }
+}
+
+void MainWindow::onPause()
+{
+    Pause();
+}
+
+void MainWindow::onNext()
+{
+    Next();
+    playerTime->setText("00:00:00");
+    playerSlider->setValue(0);
+    //sleep(1);
+    songName->setText(QString::fromUtf8(TracName().c_str()));
+
+    QList<QTreeWidgetItem *> itms = ui->treeWidget_library->selectedItems();
+    
+/*
+    QTreeWidgetItem *item = ui->treeWidget_library->currentItem();
+            Log::debug("item: %s %s",
+                   item->text(0).toStdString().c_str(),
+                   item->text(1).toStdString().c_str());
+
+
+    for( int i = 0; i < ui->treeWidget_library->topLevelItemCount(); ++i )
+    {
+        QTreeWidgetItem *item = ui->treeWidget_library->topLevelItem(i);
+        Log::debug("item: %s %s",
+                   item->text(0).toStdString().c_str(),
+                   item->text(1).toStdString().c_str());
+        if(i == 3)
+            item->setSelected(true);
+    }*/
+}
+
+void MainWindow::onPrev()
+{
+    Prev();
+    playerTime->setText("00:00:00");
+    playerSlider->setValue(0);
+    //sleep(1);
+    songName->setText(QString::fromUtf8(TracName().c_str()));
+}
+
+void MainWindow::onStop()
+{
+    Stop();
+    playerTime->setText("00:00:00");
+    playerSlider->setValue(0);
+    ui->actionPLay->setIcon(QIcon(":/root/resources/media/playback-start.svg"));
+}
+
+void MainWindow::onVolChange(int vol)
+{
+    VolSet(vol);
+}
+
+void MainWindow::onVolShow()
+{
+ /*   volSlider = new QSlider(Qt::Vertical,this);
+    volSlider->setRange(0, 100);
+    volSlider->minimumSize();
+    actVolSlider->setDefaultWidget(volSlider);*/
+}
+
+void MainWindow::exit()
+{
+#ifdef DEBUG
+	qDebug("exit");
+#endif
+	QApplication::exit(0);
+}
+
+void MainWindow::clearText()
+{
+}
+
+void MainWindow::setText(QString s)
+{
+	QMessageBox msgBox;
+	msgBox.setText(s);
+	msgBox.exec();
+}
+
+void MainWindow::threadError(QString err)
+{
+	QMessageBox msgBox;
+	msgBox.setText(err);
+	msgBox.exec();
+}
+
+
+bool MainWindow::onDeviceAdd()
+{
+	statusBar()->showMessage(tr("add new device"));
+
+    ui->treeWidget_MediaServers->clear();
+    ui->treeWidget_MediaRenderer->clear();
+
+	for(int i = 0; i < deviceList->Size(); i++)
+	{
+		Device *d = deviceList->getDevice(i);
+		QTreeWidgetItem * item = new QTreeWidgetItem();
+		item->setText(0, QString::fromUtf8(d->_friendlyName.c_str()));
+
+		if(d->iconSet)
+		{
+			Icon *ic = d->iconSet->front();
+
+			if(ic)
+			{
+				//        const std::string filename = "/tmp/i0000.png";
+				//        ic->save(filename);
+				//        item->setIcon(0, QIcon(QString::fromUtf8(filename.c_str())));
+				//QImage img = QImage(ic->widthInt(), ic->heightInt(), QImage::Format_RGB888);
+				/*
+				Log::debug("ic: height: %d width: %d", ic->heightInt(),ic->widthInt());
+				QImage img = QImage(ic->heightInt(),ic->widthInt(), QImage::Format_RGB32);
+				img = QImage::fromData((const uchar *) ic->data, ic->length);
+				Log::debug("img: height: %d width: %d", img.height(),img.width());
+				QPixmap pxm = QPixmap::fromImage(img);
+				Log::debug("pxm: height: %d width: %d", pxm.height(),pxm.width());
+				item->setIcon(0, QIcon(pxm));
+				*/
+			}
+		}
+
+		item->setExpanded(true);
+
+		if(d->getType() == AVTransport)
+		{
+			ui->treeWidget_MediaRenderer->addTopLevelItem(item);
+
+		}
+		else if(d->getType() == ContentDirectory)
+		{
+			ui->treeWidget_MediaServers->addTopLevelItem(item);
+		}
+	}
+
+	return true;
+}
+
+void MainWindow::onMediaServersPic(QTreeWidgetItem * item, int column)
+{
+	if(SetServer(item->text(column).toStdString()))
+	{
+		Log::debug("pic: %s", item->text(column).toStdString().c_str());
+		Container* root = setRoot();
+
+		for(unsigned int i = 0; i < root->getNumContainers(); i++)
+		{
+			Container* container = root->getContainer(i);
+			QTreeWidgetItem * item = new QTreeWidgetItem();
+			item->setText(0, QString::fromUtf8(container->getTitle()));
+			item->setText(1, QString::fromUtf8(container->getObjectID()));
+			ui->treeWidget_library->addTopLevelItem(item);
+		}
+	}
+}
+
+void MainWindow::onMediaRendererPic(QTreeWidgetItem * item, int column)
+{
+	if(SetRenderer(item->text(column).toStdString()))
+    {
+        Log::debug("pic: %s", item->text(column).toStdString().c_str());
+        //init render gui
+
+        //set volume
+        volSlider->setValue(VolGet());
+
+        //set track position
+        if(isPlay())
+        {
+            playerSlider->setRange(0,TrackDuration());
+            playerSlider->setValue(TracPosition());
+
+            songName->setText(QString::fromUtf8(TracName().c_str()));
+            ui->actionPLay->setIcon(QIcon(":/root/resources/media/playback-pause.svg"));
+        }
+    }
+}
+
+void MainWindow::onLibraryPic(QTreeWidgetItem * item, int)
+{
+	QTreeWidgetItem * its;
+	Container* p = next(item->text(1).toStdString());
+    //pic the file
+	if(!p)
+    {
+        PlayListAdd(item->text(1).toStdString());
+        item->setIcon(0, QIcon(":/root/resources/file-selected.svg"));
+
+        its = new QTreeWidgetItem();
+		its->setText(0, item->text(0));
+		its->setText(1, item->text(1));
+		its->setIcon(0, QIcon(":/root/resources/file.svg"));
+        ui->treeWidget_PlayList->addTopLevelItem(its);
+        return;
+    }
+
+
+	ui->treeWidget_library->clear();
+
+	if(!isRoot())
+	{
+		its = new QTreeWidgetItem();
+		its->setText(0, QString(".."));
+		its->setText(1, QString("-1"));
+		ui->treeWidget_library->addTopLevelItem(its);
+	}
+
+	for(unsigned int i = 0; i < p->getNumContainers(); i++)
+	{
+		Container* container = p->getContainer(i);
+		its = new QTreeWidgetItem();
+		its->setText(0, QString::fromUtf8(container->getStr().c_str()));
+		its->setText(1, QString::fromUtf8(container->getObjectID()));
+		its->setIcon(0, QIcon(":/root/resources/folder.svg"));
+		ui->treeWidget_library->addTopLevelItem(its);
+	}
+
+	for(unsigned int i = 0; i < p->getNumItems(); i++)
+	{
+		Item* item = p->getItem(i);
+		its = new QTreeWidgetItem();
+		its->setText(0, QString::fromUtf8(item->getStr().c_str()));
+		its->setText(1, QString::fromUtf8(item->getObjectID()));
+		its->setIcon(0, QIcon(":/root/resources/file.svg"));
+		ui->treeWidget_library->addTopLevelItem(its);
+	}
+}
+
+
+void MainWindow::onPlayList(QTreeWidgetItem * item, int )
+{
+    curItem = item;
+    PlayFromList(item->text(1).toStdString());
+
+    playerTime->setText("00:00:00");
+    ui->actionPLay->setIcon(QIcon(":/root/resources/media/playback-pause.svg"));
+
+    playerSlider->setRange(TracPosition(),TrackDuration());
+    playerSlider->setValue(0);
+
+    songName->setText(item->text(0));
+}
+
+
+void MainWindow::timerTick()
+{
+    int pos =  TracPosition();
+    int hours = pos/3600;
+    int mins = (pos - hours * 3600)/60;
+    int sec = pos - hours * 3600 - mins * 60;
+    QString s;
+    s.sprintf("%02d:%02d:%02d",hours, mins, sec);
+
+    playerTime->setText(s);
+    playerSlider->setValue(pos);
+}
+
+void MainWindow::timerFinish()
+{
+    playerTime->setText("00:00:00");
+    curItem =ui->treeWidget_library->itemBelow(curItem);
+    ui->treeWidget_library->setCurrentItem(curItem);
+    ui->actionPLay->setIcon(QIcon(":/root/resources/media/playback-start.svg"));
+    playerSlider->setValue(0);
+}
+
+void MainWindow::onPlayerSliderChange(int pos)
+{
+    Seek(pos);
+}

@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="qdlnacp" />
+		<Option makefile_is_custom="1" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Release">
+				<Option output="qdlnacp" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release/" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O2" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+				<MakeCommands>
+					<Build command="$make -f $makefile" />
+					<CompileFile command="$make -f $makefile $file" />
+					<Clean command="$make -f $makefile clean$target" />
+					<DistClean command="$make -f $makefile distclean$target" />
+					<AskRebuildNeeded command="$make -q -f $makefile $target" />
+					<SilentBuild command="$make -s -f $makefile $target" />
+				</MakeCommands>
+			</Target>
+			<Target title="Debug">
+				<Option output="qdlnacp" prefix_auto="1" extension_auto="1" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+		</Compiler>
+		<Unit filename="Makefile" />
+		<Unit filename="include/Config.h" />
+		<Unit filename="include/Container.h" />
+		<Unit filename="include/Device.h" />
+		<Unit filename="include/DeviceList.h" />
+		<Unit filename="include/HttpClient.h" />
+		<Unit filename="include/Icon.h" />
+		<Unit filename="include/Item.h" />
+		<Unit filename="include/Log.h" />
+		<Unit filename="include/Service.h" />
+		<Unit filename="include/TcpClient.h" />
+		<Unit filename="include/Thread.h" />
+		<Unit filename="include/Timer.h" />
+		<Unit filename="include/UPnP.h" />
+		<Unit filename="include/UPnP_CP.h" />
+		<Unit filename="include/UPnP_MediaRenderer.h" />
+		<Unit filename="include/UPnP_MediaServer.h" />
+		<Unit filename="include/Uri.h" />
+		<Unit filename="include/mainwindow.h" />
+		<Unit filename="include/xmltools.h" />
+		<Unit filename="resorces.qrc" />
+		<Unit filename="src/Config.cpp" />
+		<Unit filename="src/Container.cpp" />
+		<Unit filename="src/Device.cpp" />
+		<Unit filename="src/DeviceList.cpp" />
+		<Unit filename="src/HttpClient.cpp" />
+		<Unit filename="src/Icon.cpp" />
+		<Unit filename="src/Item.cpp" />
+		<Unit filename="src/Log.cpp" />
+		<Unit filename="src/Service.cpp" />
+		<Unit filename="src/TcpClient.cpp" />
+		<Unit filename="src/Thread.cpp" />
+		<Unit filename="src/Timer.cpp" />
+		<Unit filename="src/UPnP.cpp" />
+		<Unit filename="src/UPnP_CP.cpp" />
+		<Unit filename="src/UPnP_MediaRenderer.cpp" />
+		<Unit filename="src/UPnP_MediaServer.cpp" />
+		<Unit filename="src/main.cpp" />
+		<Unit filename="src/mainwindow.cpp" />
+		<Unit filename="src/xmltools.cpp" />
+		<Extensions>
+			<code_completion>
+				<search_path add="$(#qt.include)" />
+				<search_path add="$(#qt.include)/QtCore" />
+				<search_path add="$(#qt.include)/QtGui" />
+			</code_completion>
+			<debugger />
+			<envvars />
+			<DoxyBlocks>
+				<comment_style block="0" line="0" />
+				<doxyfile_project />
+				<doxyfile_build />
+				<doxyfile_warnings />
+				<doxyfile_output />
+				<doxyfile_dot />
+				<general />
+			</DoxyBlocks>
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

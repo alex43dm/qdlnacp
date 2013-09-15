@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="Release" />
+		<Option makefile_is_custom="1" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<MakeCommands>
+			<Build command="$make -f $makefile $target" />
+			<CompileFile command="$make -f $makefile $file" />
+			<Clean command="$make -f $makefile clean$target" />
+			<DistClean command="$make -f $makefile distclean$target" />
+			<AskRebuildNeeded command="$make -q -f $makefile $target" />
+			<SilentBuild command="$make -s -f $makefile $target" />
+		</MakeCommands>
+		<Build>
+			<Target title="Release">
+				<Option output="bin/Release/uPnP" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O2" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+				<MakeCommands>
+					<Build command="$make -f $makefile" />
+					<CompileFile command="$make -f $makefile $file" />
+					<Clean command="$make -f $makefile clean$target" />
+					<DistClean command="$make -f $makefile distclean$target" />
+					<AskRebuildNeeded command="$make -q -f $makefile $target" />
+					<SilentBuild command="$make -s -f $makefile $target" />
+				</MakeCommands>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+		</Compiler>
+		<Unit filename="device-list.cpp" />
+		<Unit filename="device-list.h" />
+		<Unit filename="device.cpp" />
+		<Unit filename="device.h" />
+		<Unit filename="main.cpp" />
+		<Unit filename="mainwindow.cpp" />
+		<Unit filename="mainwindow.h" />
+		<Unit filename="scanthread.cpp" />
+		<Unit filename="scanthread.h" />
+		<Unit filename="u-pn-p.cpp" />
+		<Unit filename="u-pn-p.h" />
+		<Extensions>
+			<code_completion>
+				<search_path add="$(#qt.include)" />
+				<search_path add="$(#qt.include)/QtCore" />
+				<search_path add="$(#qt.include)/QtGui" />
+			</code_completion>
+			<debugger />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

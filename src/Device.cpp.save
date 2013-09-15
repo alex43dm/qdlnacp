@@ -1,0 +1,542 @@
+/* -*- Mode: C; indent-tabs-mode: t; c-basic-offset: 4; tab-width: 4 -*- */
+/*
+ * gupnp
+ * Copyright (C) Unknown 2013 <alex@gentooS>
+	 *
+ * gupnp is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+	 *
+ * gupnp is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+#include <sys/socket.h>
+#include <netdb.h>
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdarg.h>
+
+#include <upnp/upnp.h>
+#include <upnp/upnptools.h>
+#include <upnp/ixml.h>
+
+#include <iostream>
+#include <sstream>
+
+#include "Device.h"
+#include "Log.h"
+#include "xmltools.h"
+#include "HttpClient.h"
+
+Device::Device() :
+    services(new std::map<ServiceType,Service*>()),
+    isfetched(false)
+{
+}
+
+Device::Device(const Device *d) :
+    _DeviceId(d->_DeviceId),
+    _ServiceType(d->_ServiceType),
+    _ServiceVer(d->_ServiceVer),
+    _Location(d->_Location),
+    _Os(d->_Os),
+    _IP(d->_IP),
+    _Port(d->_Port),
+    _Time(d->_Time),
+    _baseURL(d->_baseURL),
+    _deviceType(d->_deviceType),
+    _UDN(d->_UDN),
+    _friendlyName(d->_friendlyName),
+    services(new std::map<ServiceType,Service*>()),
+    ctrlPnt(d->ctrlPnt),
+    isfetched(d->isfetched)
+{
+    if(!isfetched)
+        servicesLoad(d->services);
+}
+
+Device::Device(const Upnp_Discovery* d):
+    _DeviceId(d->DeviceId),
+    _DeviceType(d->DeviceType),
+	_ServiceType(d->ServiceType),
+	_ServiceVer(d->ServiceVer),
+	_Location(d->Location),
+	_Os(d->Os),
+	_Time(time(NULL)),
+    services(new std::map<ServiceType,Service*>()),
+    isfetched(false)
+{
+
+	char buffer[INET6_ADDRSTRLEN];
+	getnameinfo((struct sockaddr*)&d->DestAddr, sizeof(d->DestAddr), buffer, sizeof(buffer), 0, 0, NI_NUMERICHOST);
+	_IP = buffer;
+
+	Uri u = Uri::Parse(_Location);
+	_Port = atoi(u.Port.c_str());
+	_baseURL = u.Protocol+"://"+u.Host+":"+u.Port;
+}
+
+Device::~Device()
+{
+    for ( auto it=services->begin(); it!=services->end(); ++it)
+    {
+        delete (*it).second;
+    }
+
+	services->clear();
+	delete services;
+}
+
+void erroCode(
+int ret, n;
+	va_list va;
+	IXML_Document *action = NULL, *response = NULL;
+	
+void  Device::upnpEventReceived(Upnp_Event*)
+{
+	Log::debug("Device::upnpEventReceived( Upnp_Event* )");
+}
+
+void Device::fetchInfo(void)
+{
+    if(isfetched)
+        return;
+
+    unsigned int i, j;
+	IXML_Document *doc = 0;
+	int res;
+	res = UpnpDownloadXmlDoc(_Location.c_str(), &doc);
+
+	if(res != UPNP_E_SUCCESS)
+	{
+		Log::err("error: UpnpDownloadXmlDoc");
+		return;
+	}
+
+	// Try to extract baseURL
+	/*
+	IXML_NodeList* urlList = ixmlDocument_getElementsByTagName( doc, "baseURL" );
+	if ( urlList )
+	{
+	    if ( IXML_Node* urlNode = ixmlNodeList_item( urlList, 0 ) )
+	    {
+	        IXML_Node* textNode = ixmlNode_getFirstChild( urlNode );
+	        if ( textNode ) _baseURL = ixmlNode_getNodeValue( textNode );
+	    }
+	    ixmlNodeList_free( urlList );
+	}
+	*/
+	// Get devices
+	IXML_NodeList* deviceList = ixmlDocument_getElementsByTagName(doc, "device");
+
+	if(deviceList)
+	{
+	    iconSet = new std::list<Icon*>();
+		for(i = 0; i < ixmlNodeList_length(deviceList); i++)
+		{
+			IXML_Element* deviceElement = (IXML_Element*)ixmlNodeList_item(deviceList, i);
+
+			_deviceType = xml_getChildElementValue(deviceElement, "deviceType");
+
+			if(_deviceType.empty())
+			{
+				Log::err("no deviceType!");
+			}
+
+			_UDN = xml_getChildElementValue(deviceElement, "UDN");
+
+			if(_UDN.empty())
+			{
+				Log::err("no UDN!");
+			}
+
+			_friendlyName = xml_getChildElementValue(deviceElement, "friendlyName");
+
+			if(_friendlyName.empty())
+			{
+				Log::err("no friendlyName! ");
+			}
+
+            Log::debug("fetch info from: %s id: %s url:%s",_friendlyName.c_str(), _DeviceId.c_str(), _Location.c_str());
+
+			IXML_NodeList* serviceList = ixmlElement_getElementsByTagName(deviceElement, "service");
+
+			if(serviceList)
+			{
+				for(j = 0; j < ixmlNodeList_length(serviceList); j++)
+				{
+					IXML_Element* serviceElement = (IXML_Element*)ixmlNodeList_item(serviceList, j);
+					Service *s = new Service();
+					s->SCPDUrl = _baseURL + xml_getChildElementValue(serviceElement, "SCPDURL");
+					s->serviceTypeUrn = xml_getChildElementValue(serviceElement, "serviceType");
+					s->eventSubURL = _baseURL + xml_getChildElementValue(serviceElement, "eventSubURL");
+					s->controlURL = _baseURL + xml_getChildElementValue(serviceElement, "controlURL");
+					//bug free pointer? icon
+					//ixmlNodeList_free((IXML_NodeList*)serviceElement);
+
+					s->serviceType = Unknown;
+
+					for(int i = AVTransport; i != X_MS_MediaReceiverRegistrar; ++i)
+					{
+						if(s->serviceTypeUrn.find(Service::toString(i)) != std::string::npos)
+						{
+							s->serviceType = static_cast<ServiceType>(i);
+							break;
+						}
+					}
+
+					if(s->serviceType == Unknown)
+					{
+						delete s;
+						continue;
+					}
+
+					Log::debug("add service type: %s", Service::toString(s->serviceType).c_str());
+					services->insert(std::pair<ServiceType,Service*>(s->serviceType,s));
+				}
+				ixmlNodeList_free(serviceList);
+			}
+
+			IXML_NodeList* icon_List = ixmlElement_getElementsByTagName(deviceElement, "icon");
+
+			if(icon_List)
+			{
+				for(j = 0; j < ixmlNodeList_length(icon_List); j++)
+				{
+					IXML_Element* iconElement = (IXML_Element*)ixmlNodeList_item(icon_List, j);
+					Icon *ic = new Icon();
+					ic->url = xml_getChildElementValue(iconElement, "url");
+					ic->mimetype = xml_getChildElementValue(iconElement, "mimetype");
+					ic->height = xml_getChildElementValue(iconElement, "height");
+					ic->width = xml_getChildElementValue(iconElement, "width");
+					ic->depth = xml_getChildElementValue(iconElement, "depth");
+					ixmlNodeList_free( (IXML_NodeList*)iconElement );
+
+					HttpClient *hc  = new HttpClient();
+
+					if(!hc->get(_IP, _Port, ic))
+					{
+						Log::err("error get image");
+						continue;
+					}
+					delete hc;
+
+					iconSet->push_back(ic);
+					//Log::debug("add icon: size: %d type: %s", ic->length, ic->mimetype.c_str());
+				}
+				ixmlNodeList_free(icon_List);
+			}
+		}
+
+		ixmlNodeList_free(deviceList);
+	}
+    isfetched = true;
+	//Log::debug("fetchInfo: done");
+}
+
+const char* Device::getId() const
+{
+	const char* s = _DeviceId.c_str();
+	return s;
+}
+
+const char * Device::getfriendlyName(void)
+{
+	const char* s = _friendlyName.c_str();
+	return s;
+}
+
+const char* Device::getServiceType(void)
+{
+	const char* s = _ServiceType.c_str();
+	return s;
+}
+
+ServiceType Device::getType(void)
+{
+	for(auto it=services->begin(); it!=services->end(); ++it)
+	{
+		Service* s= (*it).second;
+
+		if(s != 0  && (s->serviceType == AVTransport
+		               || s->serviceType == ContentDirectory
+		               || s->serviceType == RenderingControl))
+		{
+			return s->serviceType;
+		}
+	}
+
+	if(_DeviceType.find("MediaRenderer") != std::string::npos)
+		return AVTransport;
+	else if(_DeviceType.find("MediaServer") != std::string::npos)
+		return ContentDirectory;
+
+	return Unknown;
+}
+
+Service* Device::getService(ServiceType st)
+{
+	return (*services)[st];
+}
+
+void Device::servicesLoad(const std::map<ServiceType,Service*> *d)
+{
+    for ( auto it=d->begin(); it!=d->end(); ++it)
+    {
+    	Service* srv = new Service((*it).second);
+        services->insert ( std::pair<ServiceType, Service*>(srv->serviceType,srv) );
+    }
+}
+
+void Device::addService(Service *s)
+{
+	services->insert(std::pair<ServiceType,Service*>(s->serviceType,s));
+}
+
+bool Device::getServicebySid(const char* sid)
+{
+	for(auto it=services->begin(); it!=services->end(); ++it)
+	{
+		Service* s = (*it).second;
+		return *s  == sid;
+	}
+
+	return false;
+}
+
+bool Device::compareId(const std::string &id)
+{
+	//Log::debug("Device::compareId (%s)=(%s)",id.c_str(), _DeviceId.c_str());
+	return strcmp(id.c_str(), _DeviceId.c_str()) == 0;
+}
+
+bool Device::compareDev(Device* d)
+{
+	return (_DeviceId == d->getId());
+}
+
+bool Device::comparefriendlyName(const char* name)
+{
+	return (strncmp(getfriendlyName(), name,  strlen(name)) == 0);
+}
+
+std::string Device::getDevInfo(void)
+{
+	return "DeviceId:\t" + _DeviceId
+	       +"\nDeviceType:\t"+_DeviceType
+	       +"\nServiceType:\t"+_ServiceType
+	       +"\nServiceVer:\t"+_ServiceVer
+	       +"\nLocation:\t"+_Location
+	       +"\nOs:\t"+_Os
+	       +"\nIp:\t"+_IP
+	       //+"\nDate:\t"+ctime(&_Time)
+	       +"\nbaseURL:\t"+_baseURL
+	       +"\ndeviceType:\t"+_deviceType
+	       +"\nUDN:\t"+_UDN
+	       +"\nfriendlyName:\t"+_friendlyName+"\n";
+}
+
+bool Device::fetchContents(void)
+{
+	return true;
+}
+
+IXML_Node* Device::setVal(std::string name, std::string val, IXML_Document* doc)
+{
+	IXML_Element *el = ixmlDocument_createElement(doc, name.c_str());
+	IXML_Element *v = ixmlDocument_createElement(doc, val.c_str());
+	(&v->n)->nodeType = eTEXT_NODE;
+	ixmlNode_setNodeValue(&v->n,val.c_str());
+	ixmlNode_appendChild(&el->n, &v->n);
+	return &el->n;
+}
+
+IXML_Node* Device::Dev2Xml(IXML_Document* doc)
+{
+	std::cerr<<"id: "<<_DeviceId<<std::endl;
+	IXML_Element *dev = ixmlDocument_createElement(doc, "dev");
+	ixmlNode_appendChild(&dev->n, setVal("DeviceId",  _DeviceId, doc));
+	ixmlNode_appendChild(&dev->n, setVal("DeviceType",  _DeviceType, doc));
+	ixmlNode_appendChild(&dev->n, setVal("ServiceType",  _ServiceType, doc));
+	ixmlNode_appendChild(&dev->n, setVal("ServiceVer",  _ServiceVer, doc));
+	ixmlNode_appendChild(&dev->n, setVal("Location",  _Location, doc));
+	ixmlNode_appendChild(&dev->n, setVal("Os",  _Os, doc));
+	ixmlNode_appendChild(&dev->n, setVal("IP",  _IP, doc));
+	ixmlNode_appendChild(&dev->n, setVal("baseURL",  _baseURL, doc));
+	ixmlNode_appendChild(&dev->n, setVal("deviceType",  _deviceType, doc));
+	ixmlNode_appendChild(&dev->n, setVal("UDN",  _UDN, doc));
+	ixmlNode_appendChild(&dev->n, setVal("friendlyName",  _friendlyName, doc));
+	IXML_Element *Services = ixmlDocument_createElement(doc, "Services");
+
+	for(auto it=services->begin(); it!=services->end(); ++it)
+	{
+		Service* s= (*it).second;
+
+		if(s != 0  && (s->serviceType == AVTransport ||
+		               s->serviceType == RenderingControl ||
+		               s->serviceType == ContentDirectory))
+		{
+			IXML_Element *srv = ixmlDocument_createElement(doc, "Service");
+			std::stringstream str;
+			str << s->serviceType;
+			ixmlNode_appendChild(&srv->n, setVal("Type",  str.str(), doc));
+			ixmlNode_appendChild(&srv->n, setVal("SCPDUrl",  s->SCPDUrl, doc));
+			ixmlNode_appendChild(&srv->n, setVal("serviceTypeUrn",  s->serviceTypeUrn, doc));
+			ixmlNode_appendChild(&srv->n, setVal("eventSubURL",  s->eventSubURL, doc));
+			ixmlNode_appendChild(&srv->n, setVal("controlURL",  s->controlURL, doc));
+			ixmlNode_appendChild(&Services->n, &srv->n);
+		}
+	}
+
+	ixmlNode_appendChild(&dev->n, &Services->n);
+	return &dev->n;
+}
+
+IXML_Document *Device::SendAction(ServiceType stype, const char* _actionName, int count, ...)
+{
+	int ret, n;
+	va_list va;
+	IXML_Document *action = NULL, *response = NULL;
+	char* actionName = strdup(_actionName);
+	char* url = strdup((*services)[stype]->controlURL.c_str());
+	char* urn = strdup((*services)[stype]->serviceTypeUrn.c_str());
+
+	//create action
+	action = UpnpMakeAction(actionName, urn, 0, NULL);
+
+	//add argument to action
+	va_start(va, count);
+
+	for(n = 0; n < count; n++)
+	{
+		char *arg_name, *arg_val;
+		arg_name = va_arg(va, char*);
+		arg_val  = va_arg(va, char*);
+		ret = UpnpAddToAction(&action, actionName, urn, arg_name, arg_val);
+
+		if(ret != UPNP_E_SUCCESS)
+		{
+			Log::err("Unable add to action: %s (%s)\n", arg_name, arg_val);
+		}
+	}
+
+	va_end(va);
+
+	//send
+	ret = UpnpSendAction(ctrlPnt, url, urn, 0, action, &response);
+
+	if(ret != UPNP_E_SUCCESS)
+	{
+		Log::err("Unable to send action:  %s Action: %s url: %s DevUDN: %s", UpnpGetErrorMessage(ret), actionName, url, urn);
+		//printf("action: %s\n",ixmlDocumenttoString(clearXmlDoc(action)));
+		//printf("response: %s\n",ixmlDocumenttoString(clearXmlDoc(response)));
+
+        IXML_NodeList *UPnPError = ixmlDocument_getElementsByTagName(response, "UPnPError");
+
+        IXML_Element* iconElement = (IXML_Element*)ixmlNodeList_item(UPnPError, 0);
+        ixmlNodeList_free(UPnPError);
+
+        Log::err("error code: %s desc: %s",
+               xml_getChildElementValue(iconElement, "errorCode"),
+               xml_getChildElementValue(iconElement, "errorDescription"));
+        ixmlNodeList_free((IXML_NodeList*)iconElement);
+
+
+        if(action)   ixmlDocument_free(action);
+		if(response) ixmlDocument_free(response);
+
+		return NULL;
+	}
+
+	//free
+	if(action)   ixmlDocument_free(action);
+
+	if(actionName) free(actionName);
+
+	if(url) free(url);
+
+	if(urn) free(urn);
+
+	return response;
+}
+/*
+action
+<?xml version="1.0"?>
+<u:SetVolume xmlns:u="urn:schemas-upnp-org:service:RenderingControl:1">
+<InstanceID>Master</InstanceID>
+<DesiredVolume>80</DesiredVolume>
+</u:SetVolume>
+
+response
+<?xml version="1.0"?>
+<UPnPError xmlns="urn:schemas-upnp-org:control-1-0">
+<errorCode>402</errorCode>
+<errorDescription>Invalid or Missing Args</errorDescription>
+</UPnPError>
+*/
+
+bool Device::Subscribe(ServiceType stype, int timeOut = 20)
+{
+	if(services->empty())
+		return false;
+
+	Service* srv = (*services)[stype];
+	int ret = UpnpSubscribe(ctrlPnt, srv->eventSubURL.c_str(),  &timeOut,   srv->Sid);
+
+	if(ret != UPNP_E_SUCCESS)
+	{
+		Log::err("error UpnpSubscribe to : %s url: %s",_DeviceId.c_str(), srv->eventSubURL.c_str());
+		return false;
+	}
+	else
+	{
+		(*services)[ContentDirectory] = srv;
+	}
+
+	return true;
+}
+
+bool Device::UnSubscribe(ServiceType stype)
+{
+	Service* s = getService(stype);
+	int ret = UpnpUnSubscribe(ctrlPnt, s->Sid);
+
+	if(ret != UPNP_E_SUCCESS)
+	{
+		Log::err("error UpnpUnSubscribe to : %s url: %s",_DeviceId.c_str(), s->eventSubURL.c_str());
+		return false;
+	}
+
+	return true;
+}
+
+DOMString Device::getSrvVar(ServiceType stype, std::string varName)
+{
+	Service *s = getService(stype);
+
+	if(s == 0)
+	{
+		Log::err("service: %d not found", stype);
+		return 0;
+	}
+
+	int ret;
+	DOMString response;
+	ret = UpnpGetServiceVarStatus(ctrlPnt, s->controlURL.c_str(),   varName.c_str(),  &response);
+
+	if(ret != UPNP_E_SUCCESS)
+	{
+		Log::err("Unable get var: %s return: %d id: %s control url: %s",
+           varName.c_str(), ret, UpnpGetErrorMessage(ret), _DeviceId.c_str(), s->controlURL.c_str());
+		return NULL;
+	}
+
+	return response;
+}

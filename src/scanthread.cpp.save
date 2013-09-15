@@ -1,0 +1,61 @@
+#include "scanthread.h"
+#ifdef DEBUG
+#include <QDebug>
+#endif
+
+#include "UPnP.h"
+#include "DeviceList.h"
+
+ScanThread::ScanThread()
+{
+
+}
+
+ScanThread::~ScanThread()
+{
+
+}
+
+void ScanThread::sendMes()
+{
+    /*
+    u->SendAction("MediaTomb",
+                  ContentDirectory,
+                  "Browse"
+                  ,2
+                  ,"ObjectID", "0");*/
+}
+
+void ScanThread::process()
+{
+#ifdef DEBUG
+    qDebug("thread run");
+#endif
+
+    //scan
+    u->NetScan(7);
+    u->SaveConfig();
+    statusBar()->showMessage(tr("sc"));
+
+    //set avi
+//    u->SetAvi();
+
+/*
+    for(;;)
+    {
+        sleep(5);
+
+        emit clear();
+        std::vector<Device *> l = dl->getList();
+        for ( unsigned int i = 0; i < l.size(); i++ )
+        {
+            std::string ret = l[i]->getDevInfo();
+            emit info(QString::fromUtf8(ret.c_str()));
+        }
+    }
+*/
+#ifdef DEBUG
+        qDebug("thread exit");
+#endif
+    emit finished();
+}

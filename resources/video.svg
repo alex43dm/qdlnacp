@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://web.resource.org/cc/"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="50"
+   height="50"
+   id="svg2187"
+   sodipodi:version="0.32"
+   inkscape:version="0.45.1"
+   version="1.0"
+   sodipodi:docbase="C:\Documents and Settings\mm81002\Desktop\SVG-images"
+   sodipodi:docname="video-icon.svg"
+   inkscape:output_extension="org.inkscape.output.svg.inkscape">
+  <defs
+     id="defs2189">
+    <linearGradient
+       inkscape:collect="always"
+       id="linearGradient2162">
+      <stop
+         style="stop-color:#000000;stop-opacity:1;"
+         offset="0"
+         id="stop2164" />
+      <stop
+         style="stop-color:#000000;stop-opacity:0;"
+         offset="1"
+         id="stop2166" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient2162"
+       id="linearGradient3219"
+       gradientUnits="userSpaceOnUse"
+       x1="97.438423"
+       y1="263.73013"
+       x2="119.52634"
+       y2="236.03023" />
+    <linearGradient
+       id="linearGradient3141">
+      <stop
+         style="stop-color:#004191;stop-opacity:1;"
+         offset="0"
+         id="stop3143" />
+      <stop
+         style="stop-color:#000000;stop-opacity:0;"
+         offset="1"
+         id="stop3145" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3141"
+       id="linearGradient3217"
+       gradientUnits="userSpaceOnUse"
+       x1="103.84256"
+       y1="234.63956"
+       x2="104.90319"
+       y2="279.28525" />
+    <linearGradient
+       inkscape:collect="always"
+       id="linearGradient3155">
+      <stop
+         style="stop-color:#ffffff;stop-opacity:1;"
+         offset="0"
+         id="stop3157" />
+      <stop
+         style="stop-color:#ffffff;stop-opacity:0;"
+         offset="1"
+         id="stop3159" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3155"
+       id="linearGradient3221"
+       gradientUnits="userSpaceOnUse"
+       x1="85.767342"
+       y1="250.93361"
+       x2="128.51839"
+       y2="250.93361" />
+  </defs>
+  <sodipodi:namedview
+     inkscape:document-units="in"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="4.24125"
+     inkscape:cx="48.611111"
+     inkscape:cy="30.555556"
+     inkscape:current-layer="layer1"
+     id="namedview2191"
+     width="50px"
+     height="50px"
+     inkscape:window-width="739"
+     inkscape:window-height="573"
+     inkscape:window-x="132"
+     inkscape:window-y="174" />
+  <metadata
+     id="metadata2193">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <path
+       sodipodi:type="arc"
+       style="opacity:1;fill:url(#linearGradient3217);fill-opacity:1;stroke:url(#linearGradient3219);stroke-opacity:1"
+       id="path3201"
+       sodipodi:cx="107.14286"
+       sodipodi:cy="250.93361"
+       sodipodi:rx="21.375523"
+       sodipodi:ry="19.746117"
+       d="M 128.51838 250.93361 A 21.375523 19.746117 0 1 1  85.767338,250.93361 A 21.375523 19.746117 0 1 1  128.51838 250.93361 z"
+       transform="translate(-82.481794,-226.47296)"
+       inkscape:export-filename="C:\Documents and Settings\mm81002\Desktop\film.png"
+       inkscape:export-xdpi="96"
+       inkscape:export-ydpi="96" />
+    <g
+       id="g3233"
+       inkscape:export-filename="C:\Documents and Settings\mm81002\Desktop\film.png"
+       inkscape:export-xdpi="96"
+       inkscape:export-ydpi="96"
+       transform="translate(-32.457829,-222.92786)">
+      <rect
+         ry="0.8899684"
+         y="244.09319"
+         x="45.768345"
+         height="13.913577"
+         width="19.039633"
+         id="rect3223"
+         style="opacity:1;fill:#000000;stroke:none;stroke-opacity:1" />
+      <path
+         transform="matrix(1.3636363,0,0,1.4210526,-2.2634538,-100.98388)"
+         d="M 50.528255 238.96713 A 4.0276146 3.4783943 0 1 1  42.473026,238.96713 A 4.0276146 3.4783943 0 1 1  50.528255 238.96713 z"
+         sodipodi:ry="3.4783943"
+         sodipodi:rx="4.0276146"
+         sodipodi:cy="238.96713"
+         sodipodi:cx="46.500641"
+         id="path3227"
+         style="opacity:1;fill:#000000;stroke:none;stroke-opacity:1"
+         sodipodi:type="arc" />
+      <path
+         transform="matrix(1.3636363,0,0,1.4210526,-15.078589,-100.98387)"
+         d="M 50.528255 238.96713 A 4.0276146 3.4783943 0 1 1  42.473026,238.96713 A 4.0276146 3.4783943 0 1 1  50.528255 238.96713 z"
+         sodipodi:ry="3.4783943"
+         sodipodi:rx="4.0276146"
+         sodipodi:cy="238.96713"
+         sodipodi:cx="46.500641"
+         id="path3229"
+         style="opacity:1;fill:#000000;stroke:none;stroke-opacity:1"
+         sodipodi:type="arc" />
+      <rect
+         ry="0.8899684"
+         y="248.1208"
+         x="65.174126"
+         height="6.4075685"
+         width="6.0414219"
+         id="rect3231"
+         style="opacity:1;fill:#000000;stroke:none;stroke-opacity:1" />
+    </g>
+    <path
+       sodipodi:type="arc"
+       style="opacity:1;fill:url(#linearGradient3221);fill-opacity:1;stroke:none;stroke-opacity:1"
+       id="path3215"
+       sodipodi:cx="107.14286"
+       sodipodi:cy="250.93361"
+       sodipodi:rx="21.375523"
+       sodipodi:ry="19.746117"
+       d="M 128.51838 250.93361 A 21.375523 19.746117 0 1 1  85.767338,250.93361 A 21.375523 19.746117 0 1 1  128.51838 250.93361 z"
+       transform="matrix(4.8531531e-3,0.2663847,-0.6679411,1.8369573e-3,191.33311,-17.000801)"
+       inkscape:export-filename="C:\Documents and Settings\mm81002\Desktop\film.png"
+       inkscape:export-xdpi="96"
+       inkscape:export-ydpi="96" />
+  </g>
+</svg>

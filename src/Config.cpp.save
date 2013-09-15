@@ -1,0 +1,236 @@
+#include <iostream>
+#include <fstream>
+
+#include <string.h>
+#include <stdlib.h>
+
+#include "Config.h"
+#include "UPnP_MediaRenderer.h"
+#include "UPnP_MediaServer.h"
+
+Config::Config(std::string fName, DeviceList** dl)
+{
+    fileName = fName;
+
+    IXML_Document *doc = ixmlLoadDocument(fName.c_str());
+    if( !doc  )
+    {
+        std::cerr<<"does not found config file: "<<fName<<std::endl;
+        return;
+    }
+
+    IXML_NodeList* rootList = ixmlDocument_getElementsByTagName( doc, "root" );
+    if ( !rootList )
+    {
+        std::cerr<<"does not found root section in file: "<<fName<<std::endl;
+    }
+
+    IXML_Element* rootElement = ( IXML_Element* )ixmlNodeList_item( rootList, 0);
+    port = xmlGetChildElementValue( rootElement, "port");
+    ip = xmlGetChildElementValue( rootElement, "ip");
+    //....
+
+    IXML_NodeList* deviceList = ixmlElement_getElementsByTagName( rootElement, "dev" );
+    for ( unsigned int i = 0; i < ixmlNodeList_length( deviceList ); i++ )
+    {
+        Device* d = new Device();
+
+        IXML_Element* deviceElement = ( IXML_Element* )ixmlNodeList_item( deviceList, i );
+
+        d->_DeviceId = xmlGetChildElementValue(  deviceElement, "DeviceId");
+        d->_deviceType = xmlGetChildElementValue(  deviceElement, "DeviceType");
+        d->_ServiceType = xmlGetChildElementValue(  deviceElement, "ServiceType");
+        d->_ServiceVer = xmlGetChildElementValue(  deviceElement, "ServiceVer");
+        d->_Location = xmlGetChildElementValue(  deviceElement, "Location");
+        d->_Os = xmlGetChildElementValue(  deviceElement, "Os");
+        d->_IP = xmlGetChildElementValue(  deviceElement, "IP");
+        d->_baseURL = xmlGetChildElementValue(  deviceElement, "baseURL");
+        d->_deviceType = xmlGetChildElementValue(  deviceElement, "deviceType");
+        d->_UDN = xmlGetChildElementValue(  deviceElement, "UDN");
+        d->_friendlyName = xmlGetChildElementValue(  deviceElement, "friendlyName");
+
+        IXML_NodeList* serviceList = ixmlElement_getElementsByTagName( deviceElement, "Service" );
+        for ( unsigned int j = 0; j < ixmlNodeList_length( serviceList ); j++ )
+        {
+            Service *s = new Service();
+
+            IXML_Element* serviceElement = ( IXML_Element* )ixmlNodeList_item( serviceList, j );
+
+            std::string sType = xmlGetChildElementValue(  serviceElement, "Type");
+            s->serviceType = (enum ServiceType)atoi(sType.c_str());
+            s->SCPDUrl = xmlGetChildElementValue(  serviceElement, "SCPDUrl").c_str();
+            s->serviceTypeUrn = xmlGetChildElementValue(  serviceElement, "serviceTypeUrn").c_str();
+            s->eventSubURL = xmlGetChildElementValue(  serviceElement, "eventSubURL").c_str();
+            s->controlURL = xmlGetChildElementValue(  serviceElement, "controlURL").c_str();
+            bzero(s->Sid;
+
+            d->addService( s );
+        }
+
+        switch( d->getType() )
+        {
+        case AVTransport:
+        {
+            UPnP_MediaRenderer* m = new UPnP_MediaRenderer(d);
+            delete d;
+            (*dl)->addDevice(m, false);
+        }
+        break;
+        case ContentDirectory:
+        {
+            UPnP_MediaServer* m = new UPnP_MediaServer(d);
+            delete d;
+            (*dl)->addDevice(m, false);
+        }
+        break;
+        default:
+        {
+            (*dl)->addDevice(d, false);
+            break;
+        }
+        }
+    }
+}
+
+std::string Config::xmlGetChildElementValue( IXML_Element* parent,  const std::string tagName )
+{
+    if ( !parent ) return "";
+    if ( tagName.empty() ) return "";
+
+
+    IXML_NodeList* nodeList = ixmlElement_getElementsByTagName( parent, tagName.c_str());
+    if ( !nodeList ) return "";
+
+    IXML_Node* element = ixmlNodeList_item( nodeList, 0 );
+    ixmlNodeList_free( nodeList );
+    if ( !element ) return "";
+
+    IXML_Node* textNode = ixmlNode_getFirstChild( element );
+    if ( !textNode ) return "";
+    const char* ret = ixmlNode_getNodeValue( textNode );
+    if( ret )
+    {
+        return ret;
+    }
+
+    return "";
+}
+
+std::string Config::xmlGetChildElement( IXML_Element* parent, const char* tagName )
+{
+    if ( !parent ) return "";
+    if ( !tagName ) return "";
+
+    char* s = strdup( tagName );
+    IXML_NodeList* nodeList = ixmlElement_getElementsByTagName( parent, s );
+    free( s );
+
+    IXML_Node* element = ixmlNodeList_item( nodeList, 0 );
+    ixmlNodeList_free( nodeList );
+    if ( !element ) return "";
+
+    const char* ret = ixmlNodetoString( element );
+    if( ret )
+    {
+        return ret;
+    }
+
+    return "";
+}
+
+std::string Config::xmlGetChildElementAttr( IXML_Element* parent, const char* tagName, const char* attrName )
+{
+    if ( !parent ) return "";
+    if ( !tagName ) return "";
+    if ( !attrName ) return "";
+
+    char* s = strdup( tagName );
+    IXML_NodeList* nodeList = ixmlElement_getElementsByTagName( parent, s );
+    free( s );
+
+    IXML_Node* element = ixmlNodeList_item( nodeList, 0 );
+    ixmlNodeList_free( nodeList );
+    if ( !element ) return "";
+
+    const char* ret = ixmlElement_getAttribute( (IXML_Element* )element,  attrName);
+    if( ret )
+    {
+        return ret;
+    }
+
+    return "";
+}
+
+IXML_Node* Config::setVal(std::string name, std::string val, IXML_Document* doc)
+{
+    IXML_Element *el = ixmlDocument_createElement(doc, name.c_str());
+    IXML_Element *v = ixmlDocument_createElement(doc, val.c_str());
+    (&v->n)->nodeType = eTEXT_NODE;
+    ixmlNode_setNodeValue(&v->n,val.c_str());
+    ixmlNode_appendChild( &el->n, &v->n );
+    return &el->n;
+}
+
+bool Config::CreateFile(std::string fName, DeviceList* dl)
+{
+    IXML_Document *doc;
+    doc = ixmlDocument_createDocument();
+
+    IXML_Element *root = ixmlDocument_createElement(doc, "root");
+    ixmlNode_appendChild( &root->n, setVal("port",  port, doc));
+    ixmlNode_appendChild( &root->n, setVal("ip",  ip, doc));
+
+    IXML_Element *devroot = ixmlDocument_createElement(doc, "devroot");
+
+    std::vector<Device*>dlist = dl->getList();
+    std::vector<Device*>::iterator it;
+    for ( it = dlist.begin(); it != dlist.end(); it++ )
+    {
+        IXML_Node* d2 = (*it)->Dev2Xml( doc );
+        ixmlNode_appendChild( &devroot->n, d2);
+    }
+
+    ixmlNode_appendChild( &root->n, &devroot->n);
+    ixmlNode_appendChild( &doc->n, &root->n);
+
+    std::ofstream configFile (fName);
+    configFile << ixmlDocumenttoString(doc);
+    configFile.close();
+    return true;
+}
+
+bool Config::SaveFile(DeviceList* dl)
+{
+    return CreateFile(fileName, dl);
+}
+
+Config::~Config()
+{
+    //dtor
+}
+
+std::string Config::GetXml(DeviceList* dl)
+{
+    IXML_Document *doc;
+    doc = ixmlDocument_createDocument();
+
+    IXML_Element *root = ixmlDocument_createElement(doc, "root");
+    ixmlNode_appendChild( &root->n, setVal("port",  port, doc));
+    ixmlNode_appendChild( &root->n, setVal("ip",  ip, doc));
+
+    IXML_Element *devroot = ixmlDocument_createElement(doc, "devroot");
+
+    std::vector<Device*>dlist = dl->getList();
+    std::vector<Device*>::iterator it;
+    for ( it = dlist.begin(); it != dlist.end(); it++ )
+    {
+        IXML_Node* d2 = (*it)->Dev2Xml( doc );
+        ixmlNode_appendChild( &devroot->n, d2);
+    }
+
+    ixmlNode_appendChild( &root->n, &devroot->n);
+    ixmlNode_appendChild( &doc->n, &root->n);
+
+    return ixmlDocumenttoString(doc);
+}
+

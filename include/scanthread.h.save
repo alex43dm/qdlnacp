@@ -1,0 +1,33 @@
+#ifndef SCANTHREAD_H
+#define SCANTHREAD_H
+
+#include <QObject>
+#include "u-pn-p.h"
+
+class ScanThread : public QObject
+{
+    Q_OBJECT
+public:
+    explicit ScanThread();
+    ~ScanThread();
+
+public slots:
+    void process();
+    void sendMes();
+    void onPlay();
+    void onPause();
+//    void onStop();
+    void onNext();
+    void onPrev();
+
+signals:
+    void finished();
+    void error(QString err);
+    void info(QString err);
+    void clear();
+private:
+    UPnP* u;
+    std::string xbmcId;
+};
+
+#endif // SCANTHREAD_H

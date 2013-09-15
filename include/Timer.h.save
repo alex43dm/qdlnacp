@@ -1,0 +1,19 @@
+#ifndef TIMER_H
+#define TIMER_H
+
+#include "Thread.h"
+
+class Timer : public Thread
+{
+    public:
+        Timer(int);
+        virtual ~Timer();
+        vo
+        virtual void tick() override;
+    protected:
+        virtual void *threadLoop();
+    private:
+        int sec;
+};
+
+#endif // TIMER_H
